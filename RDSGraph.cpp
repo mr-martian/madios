@@ -1,8 +1,5 @@
 #include "RDSGraph.h"
 
-#include "TimeFuncs.h"
-#include <algorithm>
-
 using std::min;
 using std::max;
 using std::vector;

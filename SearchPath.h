@@ -1,7 +1,7 @@
 #ifndef SEARCHPATH_H
 #define SEARCHPATH_H
 
-#include "Stringable.h"
+#include "utils/Stringable.h"
 
 #include <fstream>
 #include <sstream>

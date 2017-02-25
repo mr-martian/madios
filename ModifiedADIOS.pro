@@ -15,22 +15,22 @@ HEADERS += RDSGraph.h \
            RDSNode.h \
            BasicSymbol.h \
            SearchPath.h \
-           Stringable.h \
+           utils/Stringable.h \
            SpecialLexicons.h \
            SignificantPattern.h \
            EquivalenceClass.h \
-           special.h \
-           TimeFuncs.h
+           utils/special.h \
+           utils/TimeFuncs.h
 
 SOURCES += main.cpp \
            RDSGraph.cpp \
            RDSNode.cpp \
            BasicSymbol.cpp \
            SearchPath.cpp \
-           Stringable.cpp \
+           utils/Stringable.cpp \
            SpecialLexicons.cpp \
            SignificantPattern.cpp \
            EquivalenceClass.cpp \
-           special.cpp \
-           MiscUtils.cpp \
-           TimeFuncs.cpp
+           maths/special.cpp \
+           utils/MiscUtils.cpp \
+           utils/TimeFuncs.cpp
