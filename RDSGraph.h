@@ -28,6 +28,7 @@ class RDSGraph: public Stringable
         void distill(const ADIOSParams &params);
 
         void convert2PCFG(std::ostream &out) const;
+        void convert2nltkPCFG(std::ostream &out) const;
 
         virtual std::string toString() const;
 

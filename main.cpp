@@ -86,7 +86,8 @@ int main(int argc, char *argv[])
 
     std::cout << endl << "Time elapsed: " << endTime - startTime << " seconds" << endl << endl << endl << endl;
 
-    testGraph.convert2PCFG(std::cout);
+    // testGraph.convert2PCFG(std::cout);
+    testGraph.convert2nltkPCFG(std::cout);
 /*
     startTime = getTime();
     testGraph.distill(ADIOSParams(atof(argv[2]), atof(argv[3])*10, atoi(argv[4])-2, atof(argv[5])));

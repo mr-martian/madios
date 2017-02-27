@@ -41,7 +41,7 @@ An example raw corpus file (* and # are the start and end delimiters):
  *  Cindy thinks that Joe believes that to please is easy  #
 
 
-
+./ModifiedADIOS test/corpus.txt 0.9 0.01 5 0.65
 with eta = 0.9, alpha = 0.01, context_size = 5 and coverage = 0.65, the following grammar is distilled:
 
 Lexicon 0: START   ------->  0  []

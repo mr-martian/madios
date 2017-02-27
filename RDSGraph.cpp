@@ -135,6 +135,71 @@ void RDSGraph::convert2PCFG(ostream &out) const
     }
 }
 
+void RDSGraph::convert2nltkPCFG(ostream &out) const
+{
+    /* print sentences first so nltk doesn't barf */
+    for(unsigned int i = 0; i < paths.size(); i++)
+    {
+        out << "S ->";
+        for(unsigned int j = 1; j < paths[i].size()-1; j++)
+        {
+            //out << " " << printNodeName(paths[i][j]);
+            if (nodes[paths[i][j]].type == LexiconTypes::Symbol)
+            {
+                out << " \'" << printNodeName(paths[i][j]) << "\'";
+            }else
+            {
+                out << " " << printNodeName(paths[i][j]);
+            }
+
+        }
+        //out << " [" << 1.0/paths.size() << "]";
+        out << std::endl;
+    }
+
+    for(unsigned int i = 0; i < nodes.size(); i++)
+    {
+        if(nodes[i].type == LexiconTypes::EC)
+        {
+            /* get total counts */
+            EquivalenceClass *ec = static_cast<EquivalenceClass *>(nodes[i].lexicon);
+            int total_count = 0;
+            for(unsigned int j = 0; j < ec->size(); j++)
+                total_count += counts[i][j];
+            for(unsigned int j = 0; j < ec->size(); j++)
+            {
+                float probability = ((float) counts[i][j]) / total_count;
+                //out << "E" << i << " -> " << printNodeName((*ec)[j]) << " [" << probability << "]" << std::endl;
+                if (nodes[(*ec)[j]].type == LexiconTypes::Symbol)
+                {
+                    out << "E" << i << " -> \'" << printNodeName((*ec)[j]) << "\' [" << probability << "]" << std::endl;
+                }else
+                {
+                    out << "E" << i << " -> " << printNodeName((*ec)[j]) << " [" << probability << "]" << std::endl;
+                }
+            }
+        }
+        else if(nodes[i].type == LexiconTypes::SP)
+        {
+            SignificantPattern *sp = static_cast<SignificantPattern *>(nodes[i].lexicon);
+            out << "P" << i << " ->";
+            for(unsigned int j = 0; j < sp->size(); j++)
+            {
+                //out << " " << printNodeName((*sp)[j]);
+                if (nodes[(*sp)[j]].type == LexiconTypes::Symbol)
+                {
+                    out << " \'" << printNodeName((*sp)[j]) << "\'";
+                }else
+                {
+                    out << " " << printNodeName((*sp)[j]);
+                }
+            }
+            out << " [1.0]";
+            out << std::endl;
+        }
+    }
+}
+
 vector<string> RDSGraph::generate() const
 {
     unsigned int pathIndex = static_cast<unsigned int>(floor(uniform_rand() * paths.size()));
