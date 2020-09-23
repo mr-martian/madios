@@ -87,14 +87,16 @@ class ParseTree
             for(unsigned int i = 1; i < branch.the_nodes.size(); i++)
             {
                 the_nodes.push_back(branch.the_nodes[i]);
-                the_nodes.back().the_parent.first = the_nodes.back().the_parent.first+offset;
-                for(unsigned int j = 0; j < the_nodes.back().children().size(); j++)
-                    the_nodes.back().the_children[j] = the_nodes.back().the_children[j]+offset-1;
+                the_nodes.back().the_parent.first += offset;
+                for(auto& it : the_nodes.back().children()) {
+                  it += offset-1;
+                }
             }
 
             the_nodes[offset].the_parent.first = attachPoint;
-            for(unsigned int i = 0; i < branch.the_nodes[0].the_children.size(); i++)
-            the_nodes[attachPoint].the_children.push_back(branch.the_nodes[0].the_children[i]+offset-1);
+            for(auto& it : branch.the_nodes[0].the_children) {
+              the_nodes[attachPoint].the_children.push_back(it+offset-1);
+            }
         }
 
         void print(unsigned int node, unsigned int tab_level) const
@@ -102,8 +104,9 @@ class ParseTree
             for(unsigned int i = 0; i < tab_level; i++)
                 std::cout << "\t";
             std::cout << node << " ---> " << the_nodes[node].the_value << std::endl;
-            for(unsigned int i = 0; i < the_nodes[node].the_children.size(); i++)
-                print(the_nodes[node].the_children[i], tab_level+1);
+            for(auto& it : the_nodes[node].the_children) {
+              print(it, tab_level+1);
+            }
         }
 
     private:

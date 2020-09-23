@@ -47,8 +47,8 @@ class RDSGraph: public Stringable
         bool generalise(const SearchPath &search_path, const ADIOSParams &params);
 
         // generalise and bootstrap
-        EquivalenceClass computeEquivalenceClass(const SearchPath &search_path, unsigned int slotIndex);
-        SearchPath bootstrap(std::vector<EquivalenceClass> &encountered_ecs, const SearchPath &search_path, double overlapThreshold) const;
+        LexiconUnit computeEquivalenceClass(const SearchPath &search_path, unsigned int slotIndex);
+        SearchPath bootstrap(std::vector<LexiconUnit> &encountered_ecs, const SearchPath &search_path, double overlapThreshold) const;
 
         // compute matrix and pattern searching function
         void computeConnectionMatrix(ConnectionMatrix &connections, const SearchPath &search_path) const;
@@ -58,8 +58,7 @@ class RDSGraph: public Stringable
         // rewiring and update functions
         void updateAllConnections();
         void rewire(const std::vector<Connection> &connections, unsigned int ec);
-        void rewire(const std::vector<Connection> &connections, const EquivalenceClass &ec);
-        void rewire(const std::vector<Connection> &connections, const SignificantPattern &sp);
+        void rewire(const std::vector<Connection> &connections, const LexiconUnit &sp);
         std::vector<Connection> getRewirableConnections(const ConnectionMatrix &connections, const Range &bestSP, double alpha) const;
 
         // pattern searching auxiliary functions
@@ -71,14 +70,14 @@ class RDSGraph: public Stringable
         // auxilliary functions
         std::vector<Connection> filterConnections(const std::vector<Connection> &init_cons, unsigned int start_offset, const SearchPath &search_path) const;
         std::vector<Connection> getAllNodeConnections(unsigned int nodeIndex) const;
-        unsigned int findExistingEquivalenceClass(const EquivalenceClass &ec);
+        unsigned int findExistingEquivalenceClass(const LexiconUnit &ec);
 
         // counts the occurences of each lexicon unit
         void estimateProbabilities();
 
         // print functions
-        std::string printSignificantPattern(const SignificantPattern &sp) const;
-        std::string printEquivalenceClass(const EquivalenceClass &ec) const;
+        std::string printSignificantPattern(const LexiconUnit &sp) const;
+        std::string printEquivalenceClass(const LexiconUnit &ec) const;
         std::string printNode(unsigned int node) const;
         std::string printPath(const SearchPath &path) const;
         std::string printNodeName(unsigned int node) const;

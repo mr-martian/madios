@@ -1,10 +1,7 @@
 #ifndef ADIOSUTILS_H
 #define ADIOSUTILS_H
 
-#include "BasicSymbol.h"
-#include "SpecialLexicons.h"
-#include "SignificantPattern.h"
-#include "EquivalenceClass.h"
+#include "LexiconUnit.h"
 #include "SearchPath.h"
 
 class ADIOSParams
