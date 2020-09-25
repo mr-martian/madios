@@ -36,7 +36,7 @@ class RDSGraph: public Stringable
         unsigned int corpusSize;
         std::vector<RDSNode> nodes;
         std::vector<SearchPath> paths;
-        std::vector<ParseTree<unsigned int> > trees;
+        std::vector<ParseTree> trees;
 
         // counts and normalised probabilities
         std::vector<std::vector<unsigned int> > counts;
@@ -47,8 +47,8 @@ class RDSGraph: public Stringable
         bool generalise(const SearchPath &search_path, const ADIOSParams &params);
 
         // generalise and bootstrap
-        LexiconUnit computeEquivalenceClass(const SearchPath &search_path, unsigned int slotIndex);
-        SearchPath bootstrap(std::vector<LexiconUnit> &encountered_ecs, const SearchPath &search_path, double overlapThreshold) const;
+        std::set<unsigned int> computeEquivalenceClass(const SearchPath &search_path, unsigned int slotIndex);
+        SearchPath bootstrap(std::vector<std::set<unsigned int> > &encountered_ecs, const SearchPath &search_path, double overlapThreshold) const;
 
         // compute matrix and pattern searching function
         void computeConnectionMatrix(ConnectionMatrix &connections, const SearchPath &search_path) const;
@@ -70,7 +70,7 @@ class RDSGraph: public Stringable
         // auxilliary functions
         std::vector<Connection> filterConnections(const std::vector<Connection> &init_cons, unsigned int start_offset, const SearchPath &search_path) const;
         std::vector<Connection> getAllNodeConnections(unsigned int nodeIndex) const;
-        unsigned int findExistingEquivalenceClass(const LexiconUnit &ec);
+        unsigned int findExistingEquivalenceClass(const std::set<unsigned int>& ec);
 
         // counts the occurences of each lexicon unit
         void estimateProbabilities();
@@ -80,7 +80,7 @@ class RDSGraph: public Stringable
         std::string printEquivalenceClass(const LexiconUnit &ec) const;
         std::string printNode(unsigned int node) const;
         std::string printPath(const SearchPath &path) const;
-        std::string printNodeName(unsigned int node) const;
+        void printNodeName(unsigned int node, std::ostream& out, bool quote = false) const;
 };
 
 void printInfo(const ConnectionMatrix &connections, const Array2D<double> &flows, const Array2D<double> &descents);

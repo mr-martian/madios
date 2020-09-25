@@ -14,6 +14,10 @@ enum LexiconUnitType {
   EC
 };
 
+std::set<unsigned int> intersectSet(const std::set<unsigned int>& a, const std::set<unsigned int>& b);
+unsigned int intersectSetSize(const std::set<unsigned int>& a, const std::set<unsigned int>& b);
+bool isSubset(const std::set<unsigned int>& a, const std::set<unsigned int>& b);
+
 class LexiconUnit: public Stringable
 {
 public:
@@ -33,8 +37,6 @@ public:
   std::string toString() const;
   unsigned int size() const;
 
-  LexiconUnit computeOverlapEC(const LexiconUnit& other) const;
-  unsigned int computeOverlapECSize(const LexiconUnit& other) const;
   bool has(unsigned int unit) const;
   bool add(unsigned int unit);
 

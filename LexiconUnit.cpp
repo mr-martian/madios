@@ -9,6 +9,44 @@ using std::vector;
 using std::ostream;
 using std::ostringstream;
 
+set<unsigned int>
+intersectSet(const set<unsigned int>& a, const set<unsigned int>& b)
+{
+  set<unsigned int> ret;
+  for(auto& it : a) {
+    if(b.find(it) != b.end()) {
+      ret.insert(it);
+    }
+  }
+  return ret;
+}
+
+unsigned int
+intersectSetSize(const set<unsigned int>& a, const set<unsigned int>& b)
+{
+  unsigned int ret = 0;
+  for(auto& it : a) {
+    if(b.find(it) != b.end()) {
+      ret++;
+    }
+  }
+  return ret;
+}
+
+bool
+isSubset(const std::set<unsigned int>& a, const std::set<unsigned int>& b)
+{
+  if(a.size() > b.size()) {
+    return false;
+  }
+  for(auto& it : a) {
+    if(b.find(it) == b.end()) {
+      return false;
+    }
+  }
+  return true;
+}
+
 LexiconUnit::LexiconUnit(LexiconUnitType type_) : type(type_) {}
 
 LexiconUnit::LexiconUnit(const string& symbol_)
@@ -104,36 +142,6 @@ LexiconUnit::find(unsigned int unit) const
     }
   }
   assert(false);
-}
-
-LexiconUnit
-LexiconUnit::computeOverlapEC(const LexiconUnit& other) const
-{
-  assert(type == EC);
-  assert(other.type == EC);
-
-  LexiconUnit overlap(EC);
-  for(auto it : other.equivalence) {
-    if(has(it)) {
-      overlap.add(it);
-    }
-  }
-  return overlap;
-}
-
-unsigned int
-LexiconUnit::computeOverlapECSize(const LexiconUnit& other) const
-{
-  assert(type == EC);
-  assert(other.type == EC);
-
-  unsigned int count = 0;
-  for(auto it : other.equivalence) {
-    if(has(it)) {
-      count++;
-    }
-  }
-  return count;
 }
 
 bool

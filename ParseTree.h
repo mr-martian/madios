@@ -5,24 +5,22 @@
 
 typedef std::pair<unsigned int, unsigned int> Connection;
 
-template <class T>
 class ParseTree;
 
-template <class T>
 class ParseNode
 {
-    friend class ParseTree<T>;
+    friend class ParseTree;
 
     public:
         ParseNode()
         : the_parent(0, 0)
         {}
 
-        ParseNode(const T &value, const Connection &parent)
+        ParseNode(const unsigned int value, const Connection &parent)
         : the_value(value), the_parent(parent)
         {}
 
-        const T& value() const
+        const unsigned int value() const
         {
             return the_value;
         }
@@ -42,44 +40,43 @@ class ParseNode
         }
 
     private:
-        T the_value;
+        unsigned int the_value;
         Connection the_parent;
         std::vector<unsigned int> the_children;
 };
 
-template <class T>
 class ParseTree
 {
     public:
         ParseTree()
         {
-            the_nodes.push_back(ParseNode<T>());   // nodes[0] is always the root
+            the_nodes.push_back(ParseNode());   // nodes[0] is always the root
         }
 
-        ParseTree(const std::vector<T> &values)
+        ParseTree(const std::vector<unsigned int> &values)
         {
-            the_nodes.push_back(ParseNode<T>());   // nodes[0] is always the root
+            the_nodes.push_back(ParseNode());   // nodes[0] is always the root
             for(unsigned int i = 0; i < values.size(); i++)
             {
                 the_nodes.front().the_children.push_back(the_nodes.size());
-                the_nodes.push_back(ParseNode<T>(values[i], Connection(0, i)));
+                the_nodes.push_back(ParseNode(values[i], Connection(0, i)));
             }
         }
 
-        const std::vector<ParseNode<T> >& nodes() const
+        const std::vector<ParseNode >& nodes() const
         {
             return the_nodes;
         }
 
-        void rewire(unsigned int start, unsigned int finish, const T &new_node)
+        void rewire(unsigned int start, unsigned int finish, unsigned int new_node)
         {
-            the_nodes.push_back(ParseNode<T>(new_node, Connection(0, 0)));
+            the_nodes.push_back(ParseNode(new_node, Connection(0, 0)));
             the_nodes.back().the_children = the_nodes.front().rewireChildren(start, finish, the_nodes.size()-1);
             for(unsigned int i = 0; i < the_nodes.back().the_children.size(); i++)
                 the_nodes[the_nodes.back().the_children[i]].the_parent = Connection(the_nodes.size()-1, i);
         }
 
-        void attach(unsigned int attachPoint, const ParseTree<T> &branch)
+        void attach(unsigned int attachPoint, const ParseTree &branch)
         {
             assert(attachPoint < the_nodes.size());
 
@@ -88,7 +85,7 @@ class ParseTree
             {
                 the_nodes.push_back(branch.the_nodes[i]);
                 the_nodes.back().the_parent.first += offset;
-                for(auto& it : the_nodes.back().children()) {
+                for(auto& it : the_nodes.back().the_children) {
                   it += offset-1;
                 }
             }
@@ -110,8 +107,7 @@ class ParseTree
         }
 
     private:
-        std::vector<unsigned int> the_leaves;
-        std::vector<ParseNode<T> > the_nodes;
+        std::vector<ParseNode> the_nodes;
 };
 
 #endif
