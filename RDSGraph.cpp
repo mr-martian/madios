@@ -52,21 +52,17 @@ void RDSGraph::distill(const ADIOSParams &params)
     std::cout << "contextSize = " << params.contextSize << endl;
     std::cout << "overlapThreshold = " << params.overlapThreshold << endl;
 
-    while(true)
-    {
+    while(true) {
         bool foundPattern = false;
-        for(unsigned int i = 0; i < paths.size(); i++)
-        {
+        for(unsigned int i = 0; i < paths.size(); i++) {
             std::cout << "--------------------------- working on Path " << i << " of length " << paths[i].size() << " ----------------------------------" << endl;
             std::cout << printPath(paths[i]) << endl;
 
-            if((params.contextSize < 3) || (paths[i].size() < params.contextSize))
-            {
+            if((params.contextSize < 3) || (paths[i].size() < params.contextSize)) {
                 bool foundAnotherPattern = distill(paths[i], params);
                 foundPattern = foundAnotherPattern || foundPattern;
             }
-            else
-            {
+            else {
                 bool foundAnotherPattern = generalise(paths[i], params);
                 foundPattern = foundAnotherPattern || foundPattern;
             }
@@ -79,20 +75,17 @@ void RDSGraph::distill(const ADIOSParams &params)
 
     std::cout << endl << endl << endl;
     for(unsigned int i = 0; i < counts.size(); i++)
-        if(counts[i].size() > 1)
-        {
+        if(counts[i].size() > 1) {
             printNodeName(i, std::cout);
             std::cout <<  " ---> [";
-            for(unsigned int j = 0; j < counts[i].size(); j++)
-            {
+            for(unsigned int j = 0; j < counts[i].size(); j++) {
                 std::cout << counts[i][j];
                 if(j < (counts[i].size()-1))
                     std::cout << " | ";
             }
             std::cout << "]";/*
             std::cout <<  " ---> [";
-            for(unsigned int j = 0; j < counts[i].size(); j++)
-            {
+            for(unsigned int j = 0; j < counts[i].size(); j++) {
                 std::cout << counts[i][j];
                 if(j < (counts[i].size()-1))
                     std::cout << " | ";
@@ -109,10 +102,8 @@ void RDSGraph::convert2PCFG(ostream &out) const
 {
     out << "S _" << std::endl;
 
-    for(unsigned int i = 0; i < nodes.size(); i++)
-    {
-        if(nodes[i].type == LexiconTypes::EC)
-        {
+    for(unsigned int i = 0; i < nodes.size(); i++) {
+        if(nodes[i].type == LexiconTypes::EC) {
           unsigned int j = 0;
           for(auto& it : nodes[i].lexicon->equivalence) {
             out << counts[i][j++] << " E" << i << " --> ";
@@ -120,8 +111,7 @@ void RDSGraph::convert2PCFG(ostream &out) const
             out << std::endl;
           }
         }
-        else if(nodes[i].type == LexiconTypes::SP)
-        {
+        else if(nodes[i].type == LexiconTypes::SP) {
           out << counts[i][0] << " P" << i << " -->";
           for(auto& it : nodes[i].lexicon->sequence) {
             out << " ";
@@ -131,8 +121,7 @@ void RDSGraph::convert2PCFG(ostream &out) const
         }
     }
 
-    for(unsigned int i = 0; i < paths.size(); i++)
-    {
+    for(unsigned int i = 0; i < paths.size(); i++) {
         out << "1 S -->";
         for(unsigned int j = 1; j < paths[i].size()-1; j++) {
             out << " ";
@@ -145,11 +134,9 @@ void RDSGraph::convert2PCFG(ostream &out) const
 void RDSGraph::convert2nltkPCFG(ostream &out) const
 {
     /* print sentences first so nltk doesn't barf */
-    for(unsigned int i = 0; i < paths.size(); i++)
-    {
+    for(unsigned int i = 0; i < paths.size(); i++) {
         out << "S ->";
-        for(unsigned int j = 1; j < paths[i].size()-1; j++)
-        {
+        for(unsigned int j = 1; j < paths[i].size()-1; j++) {
             out << " ";
             printNodeName(paths[i][j], out, true);
         }
@@ -157,10 +144,8 @@ void RDSGraph::convert2nltkPCFG(ostream &out) const
         out << std::endl;
     }
 
-    for(unsigned int i = 0; i < nodes.size(); i++)
-    {
-        if(nodes[i].type == LexiconTypes::EC)
-        {
+    for(unsigned int i = 0; i < nodes.size(); i++) {
+        if(nodes[i].type == LexiconTypes::EC) {
           /* get total counts */
           unsigned int size = nodes[i].lexicon->equivalence.size();
           int total_count = 0;
@@ -175,10 +160,10 @@ void RDSGraph::convert2nltkPCFG(ostream &out) const
             out << " [" << probability << "]" << std::endl;
           }
         }
-        else if(nodes[i].type == LexiconTypes::SP)
-        {
+        else if(nodes[i].type == LexiconTypes::SP) {
           out << "P" << i << " ->";
           for(auto& it : nodes[i].lexicon->sequence) {
+            out << " ";
             printNodeName(it, out, true);
           }
           out << " [1.0]" << std::endl;
@@ -195,48 +180,39 @@ vector<string> RDSGraph::generate() const
 vector<string> RDSGraph::generate(const SearchPath &search_path) const
 {
     vector<string> sequence;
-    for(unsigned int i = 0; i < search_path.size(); i++)
-    {
-        vector<string> segment = generate(search_path[i]);
-        sequence.insert(sequence.end(), segment.begin(), segment.end());
+    for(auto& it : search_path) {
+      generate(it, sequence);
     }
-
     return sequence;
 }
 
-vector<string> RDSGraph::generate(unsigned int node) const
+void
+RDSGraph::generate(unsigned int node, vector<string>& sequence) const
 {
-    vector<string> sequence;
-
-    if(nodes[node].type == LexiconTypes::Start)
-        sequence.push_back("*");
-    else if(nodes[node].type == LexiconTypes::End)
-        sequence.push_back("#");
-    else if(nodes[node].type == LexiconTypes::Symbol)
-        sequence.push_back(nodes[node].lexicon->symbol);
-    else if(nodes[node].type == LexiconTypes::EC)
+  switch(nodes[node].type) {
+    case LexiconTypes::Start:
+      sequence.push_back("*"); break;
+    case LexiconTypes::End:
+      sequence.push_back("#"); break;
+    case LexiconTypes::Symbol:
+      sequence.push_back(nodes[node].lexicon->symbol); break;
+    case LexiconTypes::EC:
     {
       const std::set<unsigned int>& ec = nodes[node].lexicon->equivalence;
       unsigned int numberOfUnits = ec.size();
       unsigned int randomUnit = static_cast<unsigned int>(floor(numberOfUnits * uniform_rand()));
       auto iter = ec.begin();
       for(; randomUnit > 0; randomUnit--, iter++) ;
-      vector<string> segment = generate(*iter);
-      sequence.insert(sequence.end(), segment.begin(), segment.end());
-    }
-    else if(nodes[node].type == LexiconTypes::SP)
-    {
+      generate(*iter, sequence);
+    } break;
+    case LexiconTypes::SP:
       for(auto& it : nodes[node].lexicon->sequence) {
-        vector<string> segment = generate(it);
-        sequence.insert(sequence.end(), segment.begin(), segment.end());
-      }
-    }
-    else
-        assert(false);
-
-    assert(sequence.size() > 0);
-
-    return sequence;
+        generate(it, sequence);
+      } break;
+    default:
+      assert(false);
+  }
+  assert(sequence.size() > 0);
 }
 
 bool RDSGraph::distill(const SearchPath &search_path, const ADIOSParams &params)
@@ -279,8 +255,7 @@ bool RDSGraph::generalise(const SearchPath &search_path, const ADIOSParams &para
     all_encountered_ecs.push_back(vector<set<unsigned int> >(max(static_cast<unsigned int>(0), params.contextSize-2)));
 
     // get all boosted paths
-    for(unsigned int i = 0; (i+params.contextSize-1) < search_path.size(); i++)
-    {
+    for(unsigned int i = 0; (i+params.contextSize-1) < search_path.size(); i++) {
         Range context(i, i+params.contextSize-1);
         all_encountered_ecs.push_back(vector<set<unsigned int>  >());
         SearchPath boosted_part = bootstrap(all_encountered_ecs.back(), SearchPath(search_path(context.first, context.second)), params.overlapThreshold);
@@ -305,16 +280,14 @@ bool RDSGraph::generalise(const SearchPath &search_path, const ADIOSParams &para
     all_general_ecs.push_back(set<unsigned int>());
 
     // get all generalised paths
-    for(unsigned int i = 1; i < all_boosted_paths.size(); i++)
-    {
+    for(unsigned int i = 1; i < all_boosted_paths.size(); i++) {
         unsigned int context_start = all_boosted_contexts[i].first;
         unsigned int context_finish = all_boosted_contexts[i].second;
         SearchPath boosted_part(all_boosted_paths[i](context_start, context_finish));
 
         // try all the possible slots
         unsigned int start_index = all_general_paths.size();
-        for(unsigned int j = 1; j < params.contextSize-1; j++)
-        {
+        for(unsigned int j = 1; j < params.contextSize-1; j++) {
             set<unsigned int> ec = computeEquivalenceClass(boosted_part, j);
 
             // test that the found equivalence class actually has more than one element
@@ -331,8 +304,7 @@ bool RDSGraph::generalise(const SearchPath &search_path, const ADIOSParams &para
             // if general_path is already one of the path found for this boosted path, no need to test it
             bool repeated = false;
             for(unsigned int k = start_index; k < all_general_paths.size(); k++)
-                if(general_path == all_general_paths[k])
-                {
+                if(general_path == all_general_paths[k]) {
                     repeated = true;
                     break;
                 }
@@ -357,12 +329,11 @@ bool RDSGraph::generalise(const SearchPath &search_path, const ADIOSParams &para
 
     // test each path for significant patterns;
     RDSGraph temp_graph(*this);
-    for(unsigned int i = 0; i < all_general_paths.size(); i++)
-    {
+    for(unsigned int i = 0; i < all_general_paths.size(); i++) {
         ConnectionMatrix connections;
         unsigned int slot_index = all_general_slots[i];
-        if(all_general_paths[i][slot_index] >= nodes.size()) // if a new EC is expected, temporarily rewire the RDSGraph
-        {
+        if(all_general_paths[i][slot_index] >= nodes.size()) {
+            // if a new EC is expected, temporarily rewire the RDSGraph
             temp_graph.rewire(vector<Connection>(), LexiconUnit(all_general_ecs[i]));
             temp_graph.computeConnectionMatrix(connections, all_general_paths[i]);
             temp_graph.nodes.pop_back();
@@ -400,11 +371,9 @@ bool RDSGraph::generalise(const SearchPath &search_path, const ADIOSParams &para
     // LOOK FOR MOST SIGNIFICANT PATTERNS
     bool best_pattern_found = false;
     unsigned int best_pattern_index = all_patterns.size();
-    for(unsigned int i = 0; i < all_patterns.size(); i++)
-    {
+    for(unsigned int i = 0; i < all_patterns.size(); i++) {
         unsigned int current_pattern_length = all_patterns[i].second - all_patterns[i].first;
-        if(best_pattern_found)
-        {
+        if(best_pattern_found) {
             unsigned int best_pattern_length = all_patterns[best_pattern_index].second - all_patterns[best_pattern_index].first;
 //             if(current_pattern_length >= best_pattern_length)
 //             {
@@ -446,15 +415,14 @@ bool RDSGraph::generalise(const SearchPath &search_path, const ADIOSParams &para
     unsigned int old_num_nodes = nodes.size();
     unsigned int search_start = max(best_pattern.first, best_context.first);
     unsigned int search_finish = min(best_pattern.second, best_context.second);
-    for(unsigned int i = search_start; i <= search_finish; i++)
-    {
-        if(best_path[i] >= old_num_nodes)       // true if a new EC was discovered at the specific slot
-        {
+    for(unsigned int i = search_start; i <= search_finish; i++) {
+        if(best_path[i] >= old_num_nodes) {
+            // true if a new EC was discovered at the specific slot
             best_path[i] = nodes.size();
             rewire(vector<Connection>(), best_ec);
         }
-        else if(best_path[i] != search_path[i]) // true if the part of the context was boosted from existing ECs
-        {
+        else if(best_path[i] != search_path[i]) {
+            // true if the part of the context was boosted from existing ECs
             unsigned int local_slot = i - (best_context.first + 1);
             LexiconUnit best_existing_ec = *nodes[best_path[i]].lexicon;
             set<unsigned int> overlap_ec = intersectSet(best_encountered_ecs[local_slot], best_existing_ec.equivalence);
@@ -467,8 +435,7 @@ bool RDSGraph::generalise(const SearchPath &search_path, const ADIOSParams &para
                 best_path[i] = nodes.size();
                 rewire(vector<Connection>(), oec);
             }
-            else
-            {
+            else {
                 std::cout << "OLD OVERLAP EC USED: E[" << printNode(best_path[i]) << "]" << endl;
                 //rewire(vector<Connection>(), best_path[i]);
             }
@@ -493,11 +460,9 @@ string RDSGraph::toString() const
         sout << printPath(paths[i]) << endl;
 
     sout << endl << "RDS Graph Nodes " << nodes.size() << endl;
-    for(unsigned int i = 0; i < nodes.size(); i++)
-    {
+    for(unsigned int i = 0; i < nodes.size(); i++) {
         sout << "Lexicon " << i << ": " << printNode(i) << "   ------->  " << nodes[i].parents.size() << "  [";
-        for(unsigned int j = 0; j < nodes[i].parents.size(); j++)
-        {
+        for(unsigned int j = 0; j < nodes[i].parents.size(); j++) {
             sout << nodes[i].parents[j].first;// << "." << nodes[i].parents[j].second;
             if(j < (nodes[i].parents.size() - 1)) sout << "   ";
         }
@@ -516,19 +481,16 @@ void RDSGraph::buildInitialGraph(const vector<vector<string> > &sequences)
     //insert the special symbols
     nodes.push_back(RDSNode(new LexiconUnit(Start), LexiconTypes::Start));
     nodes.push_back(RDSNode(new LexiconUnit(End), LexiconTypes::End));
-    for(unsigned int i = 0; i < sequences.size(); i++)
-    {
+    for(unsigned int i = 0; i < sequences.size(); i++) {
         vector<unsigned int> currentPath;
 
         //insert start state
         currentPath.push_back(0);
 
         //create the main part of the graph
-        for(unsigned int j = 0; j < sequences[i].size(); j++)
-        {
+        for(unsigned int j = 0; j < sequences[i].size(); j++) {
             vector<string>::iterator foundPosition = find(lexicon.begin(), lexicon.end(), sequences[i][j]);
-            if(foundPosition == lexicon.end())
-            {
+            if(foundPosition == lexicon.end()) {
                 lexicon.push_back(sequences[i][j]);
                 nodes.push_back(RDSNode(new LexiconUnit(sequences[i][j]), LexiconTypes::Symbol));
                 currentPath.push_back(lexicon.size() - 1);
@@ -555,13 +517,11 @@ void RDSGraph::computeConnectionMatrix(ConnectionMatrix &connections, const Sear
     // calculate subpath distributions, symmetrical matrix
     unsigned dim = search_path.size();
     connections = ConnectionMatrix(dim, dim);
-    for(unsigned int i = 0; i < dim; i++)
-    {
+    for(unsigned int i = 0; i < dim; i++) {
         connections(i, i) = getAllNodeConnections(search_path[i]);
 
         // compute the column from the diagonal
-        for(unsigned int j = i + 1; j < dim; j++)
-        {
+        for(unsigned int j = i + 1; j < dim; j++) {
             connections(j, i) = filterConnections(connections(j - 1, i), j-i, SearchPath(search_path(j, j)));
             connections(i, j) = connections(j, i);
         }
@@ -596,11 +556,9 @@ SearchPath RDSGraph::bootstrap(vector<set<unsigned int> > &encountered_ecs, cons
 
     // find potential ECs
     encountered_ecs.clear();
-    for(unsigned int i = 1; i < search_path.size()-1; i++)
-    {
+    for(unsigned int i = 1; i < search_path.size()-1; i++) {
         encountered_ecs.push_back(set<unsigned int>());
-        for(unsigned int j = 0; j < equivalenceConnections.size(); j++)
-        {
+        for(unsigned int j = 0; j < equivalenceConnections.size(); j++) {
             unsigned int currentPath = equivalenceConnections[j].first;
             unsigned int currentStart = equivalenceConnections[j].second;
 
@@ -614,11 +572,9 @@ SearchPath RDSGraph::bootstrap(vector<set<unsigned int> > &encountered_ecs, cons
 
     // bootstrap search path
     SearchPath bootstrap_path = search_path;
-    for(unsigned int i = 0; i < encountered_ecs.size(); i++)
-    {
+    for(unsigned int i = 0; i < encountered_ecs.size(); i++) {
       for(unsigned int j = 0; j < nodes.size(); j++) {
-        if(nodes[j].type == LexiconTypes::EC)
-        {
+        if(nodes[j].type == LexiconTypes::EC) {
           double overlap = intersectSetSize(nodes[j].lexicon->equivalence, encountered_ecs[i]) / static_cast<double>(nodes[j].lexicon->size());
           if((overlap > overlap_ratios[i]) && (overlap > overlapThreshold)) {
             overlap_ecs[i] = j;
@@ -667,18 +623,15 @@ bool RDSGraph::findSignificantPatterns(vector<Range> &patterns, vector<Significa
     unsigned int pathLength = descents.dim1();
     vector<unsigned int> candidateEndRows;
     vector<unsigned int> candidateStartRows;
-    for(int i = 0; i < descents.dim1(); i++)
-    {
+    for(int i = 0; i < descents.dim1(); i++) {
         for(int j = i - 1; j >= 0; j--)
-            if(descents(i, j) < eta)
-            {
+            if(descents(i, j) < eta) {
                 candidateEndRows.push_back(i - 1);
                 break;
             }
 
         for(int j = i + 1; j < descents.dim2(); j++)
-            if(descents(i, j) < eta)
-            {
+            if(descents(i, j) < eta) {
                 candidateStartRows.push_back(i + 1);
                 break;
             }
@@ -695,8 +648,8 @@ bool RDSGraph::findSignificantPatterns(vector<Range> &patterns, vector<Significa
     //    std::cout << "Candidate Pattern " << i << " = " << candidatePatterns[i].first << " " << candidatePatterns[i].second << endl;
 
     Array2D<double> pvalueCache(pathLength, pathLength, 2.0);
-    for(unsigned int i = 0; i < candidatePatterns.size(); i++)
-    {   //std::cout << "START+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++" << endl;
+    for(unsigned int i = 0; i < candidatePatterns.size(); i++) {
+        //std::cout << "START+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++" << endl;
         //std::cout << "Testing pattern at [" << candidatePatterns[i].first << " -> " << candidatePatterns[i].second << "]" << endl;
 
         SignificancePair tempPvalues(2.0, 2.0);
@@ -712,8 +665,7 @@ bool RDSGraph::findSignificantPatterns(vector<Range> &patterns, vector<Significa
         //std::cout << "left pvalue = " << 1.0 - tempPvalues.first << " for " << connections(candidatePatterns[i].first - 1, descentContexts.first).size() << " out of " << connections(candidatePatterns[i].first, descentContexts.first).size() << endl;
 
         // pattern IS significant
-        if(isPatternSignificant(tempPvalues, alpha))
-        {
+        if(isPatternSignificant(tempPvalues, alpha)) {
             //std::cout << "Pattern is significant at [" << 1-tempPvalues.first << " --- " << 1-tempPvalues.second << "]" << endl;
             //std::cout << "Right descent context is [" << descentContexts.second << " -> " << candidatePatterns[i].second << "]" << endl;
             //std::cout << "Left descent context is [" << descentContexts.first << " -> " << candidatePatterns[i].first << "]" << endl;
@@ -722,8 +674,7 @@ bool RDSGraph::findSignificantPatterns(vector<Range> &patterns, vector<Significa
             pvalues.push_back(tempPvalues);
 
             //found a MORE significant pattern
-            if((patterns.size() == 1) || (pvalues.back() < pvalues.front()))
-            {
+            if((patterns.size() == 1) || (pvalues.back() < pvalues.front())) {
                 swap(patterns.front(), patterns.back());
                 swap(pvalues.front(), pvalues.back());
                 //std::cout << "!!!!!!!!!!!!!!!!!!!!!!!!!!found a better SP" << endl;
@@ -769,25 +720,21 @@ void RDSGraph::rewire(const vector<Connection> &connections, const LexiconUnit &
 
     // remove any overlapping connections
     vector<Connection> sorted_connections;
-    for(unsigned int i = 0; i < connections.size(); i++)
-    {
+    for(unsigned int i = 0; i < connections.size(); i++) {
         unsigned int current_path_index = connections[i].first;
         unsigned int current_path_pos = connections[i].second;
 
         bool found_group = false, inserted = false;
         for(unsigned int j = 0; j < sorted_connections.size(); j++)
-            if(current_path_index == sorted_connections[j].first)
-            {
+            if(current_path_index == sorted_connections[j].first) {
                 found_group = true;
-                if(current_path_pos < sorted_connections[j].second)
-                {
+                if(current_path_pos < sorted_connections[j].second) {
                     sorted_connections.insert(sorted_connections.begin()+j, connections[i]);
                     inserted = true;
                     break;
                 }
             }
-            else if(found_group)
-            {
+            else if(found_group) {
                 sorted_connections.insert(sorted_connections.begin()+j, connections[i]);
                 inserted = true;
                 break;
@@ -800,8 +747,7 @@ void RDSGraph::rewire(const vector<Connection> &connections, const LexiconUnit &
     // validate the sorted connections
     vector<Connection> valid_connections;
     valid_connections.push_back(sorted_connections.front());
-    for(unsigned int i = 1; i < sorted_connections.size(); i++)
-    {
+    for(unsigned int i = 1; i < sorted_connections.size(); i++) {
         unsigned int current_path_index = sorted_connections[i].first;
         unsigned int current_path_pos = sorted_connections[i].second;
         unsigned int last_path_index = valid_connections.back().first;
@@ -816,8 +762,7 @@ void RDSGraph::rewire(const vector<Connection> &connections, const LexiconUnit &
     std::cout << valid_connections.size() << " valid_connections" << endl;
 
     // rewire the connections in reverse order to avoid problems with path changing size
-    for(unsigned int i = valid_connections.size()-1; i < valid_connections.size(); i--)
-    {
+    for(unsigned int i = valid_connections.size()-1; i < valid_connections.size(); i--) {
         unsigned int path_index = valid_connections[i].first;
         unsigned int path_pos = valid_connections[i].second;
 
@@ -837,30 +782,25 @@ void RDSGraph::rewire(const vector<Connection> &connections, const LexiconUnit &
 
 void RDSGraph::updateAllConnections()
 {
-    for(unsigned int i = 0; i < nodes.size(); i++)
-    {
+    for(unsigned int i = 0; i < nodes.size(); i++) {
         nodes[i].setConnections(vector<Connection>());
         nodes[i].parents.clear();
     }
 
     corpusSize = 0;
-    for(unsigned int i = 0; i < paths.size(); i++)
-    {
+    for(unsigned int i = 0; i < paths.size(); i++) {
         corpusSize += paths[i].size();
          for(unsigned int j = 0; j < paths[i].size(); j++)
              nodes[paths[i][j]].addConnection(Connection(i, j));
     }
 
-    for(unsigned int i = 0; i < nodes.size(); i++)
-    {
-      if(nodes[i].type == LexiconTypes::SP)
-      {
+    for(unsigned int i = 0; i < nodes.size(); i++) {
+      if(nodes[i].type == LexiconTypes::SP) {
         for(auto& it : nodes[i].lexicon->sequence) {
           nodes[it].parents.push_back(Connection(i, nodes[i].lexicon->find(it)));
         }
       }
-      else if(nodes[i].type == LexiconTypes::EC)
-      {
+      else if(nodes[i].type == LexiconTypes::EC) {
         for(auto& it : nodes[i].lexicon->equivalence) {
           nodes[it].parents.push_back(Connection(i, 0));
         }
@@ -902,15 +842,13 @@ double RDSGraph::findBestRightDescentColumn(unsigned int &bestColumn, Array2D<do
 {
     double pvalue = 2.0;
     pair<unsigned int, unsigned int> descentPoint(pattern.second + 1, bestColumn);
-    for(unsigned int i = 0; i <= pattern.first; i++)
-    {
+    for(unsigned int i = 0; i <= pattern.first; i++) {
         descentPoint.second = i;
         if(!(descents(descentPoint.first, descentPoint.second) < eta)) continue;
         if(pvalueCache(pattern.second + 1, i) > 1.0)
             pvalueCache(pattern.second + 1, i) = computeRightSignificance(connections, flows, descentPoint, eta);
 
-        if(pvalueCache(pattern.second + 1, i) < pvalue)
-        {
+        if(pvalueCache(pattern.second + 1, i) < pvalue) {
             bestColumn = i;
             pvalue = pvalueCache(pattern.second + 1, i);
         }
@@ -923,15 +861,13 @@ double RDSGraph::findBestLeftDescentColumn(unsigned int &bestColumn, Array2D<dou
 {
     double pvalue = 2.0;
     pair<unsigned int, unsigned int> descentPoint(pattern.first - 1, bestColumn);
-    for(int i = pattern.second; i < connections.dim2(); i++)
-    {
+    for(int i = pattern.second; i < connections.dim2(); i++) {
         descentPoint.second = i;
         if(!(descents(descentPoint.first, descentPoint.second) < eta)) continue;
         if(pvalueCache(pattern.first - 1, i) > 1.0)
             pvalueCache(pattern.first - 1, i) = computeLeftSignificance(connections, flows, descentPoint, eta);
 
-        if(pvalueCache(pattern.first - 1, i) < pvalue)
-        {
+        if(pvalueCache(pattern.first - 1, i) < pvalue) {
             bestColumn = i;
             pvalue = pvalueCache(pattern.first - 1, i);
         }
@@ -943,8 +879,7 @@ double RDSGraph::findBestLeftDescentColumn(unsigned int &bestColumn, Array2D<dou
 vector<Connection> RDSGraph::filterConnections(const vector<Connection> &init_cons, unsigned int start_offset, const SearchPath &search_path) const
 {
     vector<Connection> filtered_cons;
-    for(unsigned int i = 0; i < init_cons.size(); i++)
-    {
+    for(unsigned int i = 0; i < init_cons.size(); i++) {
         unsigned int cur_path = init_cons[i].first;
         unsigned int cur_pos = init_cons[i].second;
 
@@ -953,11 +888,10 @@ vector<Connection> RDSGraph::filterConnections(const vector<Connection> &init_co
             continue;
 
         unsigned int count = search_path.size();
-        for(unsigned int j = 0; j < search_path.size(); j++)
-        {
+        for(unsigned int j = 0; j < search_path.size(); j++) {
             unsigned int actual_pos = j+cur_pos+start_offset;
-            if(nodes[search_path[j]].type == LexiconTypes::EC)
-            {   // if node on search path is EC and it contains the node and temp path
+            if(nodes[search_path[j]].type == LexiconTypes::EC) {
+              // if node on search path is EC and it contains the node and temp path
               if(!nodes[search_path[j]].lexicon->has(paths[cur_path][actual_pos])) {
                 break;
               }
@@ -982,8 +916,7 @@ vector<Connection> RDSGraph::getAllNodeConnections(unsigned int nodeIndex) const
     vector<Connection> connections = nodes[nodeIndex].getConnections();
 
     //get all connections belonging to the nodes in the equivalence class
-    if(nodes[nodeIndex].type == LexiconTypes::EC)
-    {
+    if(nodes[nodeIndex].type == LexiconTypes::EC) {
       for(auto& it : nodes[nodeIndex].lexicon->equivalence) {
         vector<Connection> tempConnections = nodes[it].getConnections();
         connections.insert(connections.end(), tempConnections.begin(), tempConnections.end());
@@ -1013,14 +946,11 @@ void RDSGraph::estimateProbabilities()
                                             0));
     }
 
-    for(unsigned int i = 0; i < trees.size(); i++)
-    {
+    for(unsigned int i = 0; i < trees.size(); i++) {
         const vector<ParseNode>& tree_nodes = trees[i].nodes();
-        for(unsigned int j = 1; j < tree_nodes.size(); j++)
-        {
+        for(unsigned int j = 1; j < tree_nodes.size(); j++) {
             unsigned int node_index = tree_nodes[j].value();
-            if(nodes[node_index].type == LexiconTypes::EC)
-            {
+            if(nodes[node_index].type == LexiconTypes::EC) {
                 assert(tree_nodes[j].children().size() == 1);
 
                 unsigned int first_child_pos = tree_nodes[j].children().front();
@@ -1044,8 +974,7 @@ string RDSGraph::printSignificantPattern(const LexiconUnit &sp) const
 {
     ostringstream sout;
 
-    for(unsigned int i = 0; i < sp.size(); i++)
-    {
+    for(unsigned int i = 0; i < sp.size(); i++) {
         printNodeName(sp.sequence[i], sout);
         if(i < (sp.size() - 1)) sout << " - ";
     }
@@ -1072,12 +1001,10 @@ string RDSGraph::printNode(unsigned int node) const
 {
     ostringstream sout;
 
-    if(nodes[node].type == LexiconTypes::EC)
-    {
+    if(nodes[node].type == LexiconTypes::EC) {
         sout << "E[" << printEquivalenceClass(*nodes[node].lexicon) << "]";
     }
-    else if(nodes[node].type == LexiconTypes::SP)
-    {
+    else if(nodes[node].type == LexiconTypes::SP) {
         sout << "P[" << printSignificantPattern(*nodes[node].lexicon) << "]";
     }
     else
@@ -1091,8 +1018,7 @@ string RDSGraph::printPath(const SearchPath &path) const
     ostringstream sout;
 
     sout << "[";
-    for(unsigned int i = 0; i < path.size(); i++)
-    {
+    for(unsigned int i = 0; i < path.size(); i++) {
       printNodeName(path[i], sout);
       if(i < (path.size() - 1)) sout << " - ";
     }
@@ -1120,22 +1046,19 @@ RDSGraph::printNodeName(unsigned int node, ostream& out, bool quote) const
 
 void printInfo(const ConnectionMatrix &connections, const Array2D<double> &flows, const Array2D<double> &descents)
 {
-    for(int i = 0; i < connections.dim1(); i++)
-    {
+    for(int i = 0; i < connections.dim1(); i++) {
         for(int j = 0; j < connections.dim2(); j++)
             std::cout << connections(i, j).size() << "\t";
         std::cout << endl;
     }
     std::cout << endl << endl << endl;
-    for(int i = 0; i < flows.dim1(); i++)
-    {
+    for(int i = 0; i < flows.dim1(); i++) {
         for(int j = 0; j < flows.dim2(); j++)
             std::cout << flows(i, j) << "\t";
         std::cout << endl;
     }
     std::cout << endl << endl << endl;
-    for(int i = 0; i < descents.dim1(); i++)
-    {
+    for(int i = 0; i < descents.dim1(); i++) {
         for(int j = 0; j < descents.dim2(); j++)
             std::cout << descents(i, j) << "\t";
         std::cout << endl;

@@ -31,8 +31,6 @@ class RDSNode
         const std::vector<Connection>& getConnections() const;
         void setConnections(const std::vector<Connection> &connections);
 
-        bool addParent(const Connection &newParent);
-
     private:
         void deepCopy(const RDSNode &other);
 };

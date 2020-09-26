@@ -24,7 +24,7 @@ class RDSGraph: public Stringable
 
         std::vector<std::string> generate() const;
         std::vector<std::string> generate(const SearchPath &search_path) const;
-        std::vector<std::string> generate(unsigned int node) const;
+        void generate(unsigned int node, std::vector<std::string>& sequence) const;
         void distill(const ADIOSParams &params);
 
         void convert2PCFG(std::ostream &out) const;

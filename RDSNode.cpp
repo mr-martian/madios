@@ -44,16 +44,6 @@ void RDSNode::setConnections(const vector<Connection> &connections)
     this->connections = connections;
 }
 
-bool RDSNode::addParent(const Connection &newParent)
-{
-    for(unsigned int i = 0; i < parents.size(); i++)
-        if(parents[i] == newParent)
-            return false;
-
-    parents.push_back(newParent);
-    return true;
-}
-
 void RDSNode::deepCopy(const RDSNode &other)
 {
     lexicon = other.lexicon->makeCopy();
